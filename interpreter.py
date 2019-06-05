@@ -3,7 +3,14 @@
 # EOF (end-of-file) token is used to indicate that
 # there is no more input left for lexical analysis
 
-INTEGER, PLUS, EOF = 'INTEGER', 'PLUS', 'EOF'
+# DATA TYPES:
+INTEGER = 'INTEGER'
+# OPERATIONS
+PLUS, MINUS =  'PLUS', 'MINUS'
+# FILE OPERATIONS
+EOF = 'EOF'
+
+operations = {'+':PLUS, '-':MINUS}
 
 class Token(object):
 	def __init__(self, type, value):
@@ -48,13 +55,17 @@ class Interpreter(object):
 		
 		current_char = text[self.pos]
 
+		if current_char == " ":
+			self.pos += 1
+			return self.get_next_token()
+
 		if current_char.isdigit():
 			token = Token(INTEGER, int(current_char))
 			self.pos += 1
 			return token
 		
-		if current_char == '+':
-			token = Token(PLUS, current_char)
+		if current_char in operations:
+			token = Token(operations[current_char], current_char)
 			self.pos += 1
 			return token
 		
@@ -70,17 +81,25 @@ class Interpreter(object):
 		"""expr -> INTEGER PLUS INTEGER"""
 		self.current_token = self.get_next_token()
 
-		left = self.current_token
-		self.eat(INTEGER)
+		left = []
+		while self.current_token.type == INTEGER:
+			left.append(self.current_token)
+			self.eat(INTEGER)
+		left = int(''.join([str(t.value) for t in left]))
 
 		operation = self.current_token
-		self.eat(PLUS)
+		self.eat(operation.type)
 
-		right = self.current_token
-		self.eat(INTEGER)
+		right = []
+		while self.current_token.type == INTEGER:
+			right.append(self.current_token)
+			self.eat(INTEGER)
+		right = int(''.join([str(t.value) for t in right]))
 
 		if operation.type == PLUS:
-			return left.value + right.value
+			return left + right
+		if operation.type == MINUS:
+			return left - right
 
 def main():
 	while True:
